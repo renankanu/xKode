@@ -1,16 +1,10 @@
-# x_kode
+# xKode
+This is a desktop APP made for testing and studying with Flutter and Dart. The function of this program is to generate and upload an .ipa to the store, the user will choose the project folder and it will do the rest.
 
-A new Flutter project.
+## Icon
+<div>
+<img src="images/xKode.png" width="100"/>
+</div>
 
-## Getting Started
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
