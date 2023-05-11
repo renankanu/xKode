@@ -3,7 +3,7 @@ This is a desktop APP made for testing and studying with Flutter and Dart. The f
 
 ## Icon
 <div>
-<img src="images/xKode.png" width="100"/>
+<img src="assets/images/xKode.png" width="100"/>
 </div>
 
 
