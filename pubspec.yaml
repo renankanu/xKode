@@ -16,6 +16,8 @@ dependencies:
   hive_flutter: ^1.1.0
   flutter_bloc: ^8.1.2
   go_router: ^7.0.1
+  lottie: ^2.3.2
+  flutter_dotenv: ^5.0.2
 
 dev_dependencies:
   flutter_test:
@@ -31,6 +33,7 @@ flutter:
 
   assets:
     - assets/images/
+    - .env
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

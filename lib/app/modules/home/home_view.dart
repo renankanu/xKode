@@ -42,19 +42,6 @@ class _HomeViewState extends State<HomeView> {
               ),
             );
       }
-      // try {
-      //   final result = await Process.run(
-      //     'sh',
-      //     ['-c', 'cd $selectedDirectory && flutter build ios --release'],
-      //   );
-      //   log(result.stdout.toString());
-      //   log(result.stderr.toString());
-      // } on Exception {
-      //   const AlertDialog(
-      //     title: Text('Error'),
-      //     content: Text('An error occurred while building the project'),
-      //   );
-      // }
     }
   }
 
