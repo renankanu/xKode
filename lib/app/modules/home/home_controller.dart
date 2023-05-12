@@ -10,7 +10,26 @@ class HomeController extends Cubit<HomeState> {
     emit(HomeStateLoading());
     try {
       final projects = await ProjectModel.getProjects();
+      if (projects.isEmpty) {
+        emit(HomeStateEmpty());
+        return;
+      }
       emit(HomeStateSuccess(projects));
+    } catch (e) {
+      emit(HomeStateError(e.toString()));
+    }
+  }
+
+  Future<void> saveProject(ProjectModel project) async {
+    emit(HomeStateLoading());
+    final cacheProject = await ProjectModel.getProject(project.name);
+    if (cacheProject != null) {
+      emit(HomeStateError('Project already exists'));
+      return;
+    }
+    try {
+      await ProjectModel.saveProject(project);
+      emit(HomeStateSuccess(await ProjectModel.getProjects()));
     } catch (e) {
       emit(HomeStateError(e.toString()));
     }

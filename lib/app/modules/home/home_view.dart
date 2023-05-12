@@ -4,11 +4,13 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:x_kode/app/modules/home/components/base_container.dart';
 import 'package:x_kode/app/modules/home/home_controller.dart';
 import 'package:x_kode/app/modules/home/home_state.dart';
 import 'package:x_kode/app/shared/app_colors.dart';
 import 'package:x_kode/app/shared/extensions/responsive_extension.dart';
+
+import '../../model/project_model.dart';
+import 'components/base_container.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -33,17 +35,19 @@ class _HomeViewState extends State<HomeView> {
         content: Text('No directory was selected'),
       );
     } else {
+      if (mounted) {
+        context.read<HomeController>().saveProject(
+              ProjectModel(
+                name: selectedDirectory.split('/').last,
+                path: selectedDirectory,
+              ),
+            );
+      }
       try {
         final result = await Process.run(
           'sh',
           ['-c', 'cd $selectedDirectory && flutter build ios --release'],
         );
-        // _projects.add(
-        //   ProjectModel(
-        //     name: selectedDirectory.split('/').last,
-        //     path: selectedDirectory,
-        //   ),
-        // );
         log(result.stdout.toString());
         log(result.stderr.toString());
       } on Exception {
@@ -107,53 +111,44 @@ class _HomeViewState extends State<HomeView> {
               BlocConsumer<HomeController, HomeState>(
                 listener: (context, state) {},
                 builder: (context, state) {
-                  if (state is HomeStateStart) {
-                    return const Expanded(
-                      flex: 2,
-                      child: Center(
-                        child: Text('No projects found 🗑'),
-                      ),
-                    );
-                  }
-                  if (state is HomeStateLoading) {
-                    return const Expanded(
-                      flex: 2,
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  }
-                  if (state is HomeStateSuccess) {
-                    if (state.projects.isEmpty) {
+                  switch (state) {
+                    case HomeStateStart():
                       return const BaseContainer(
-                          child: Center(
-                        child: Text('No projects found 🗑'),
-                      ));
-                    }
-                    return BaseContainer(
-                      child: ListView.builder(
-                        itemCount: state.projects.length,
-                        itemBuilder: (context, index) {
-                          return const ListTile(
-                            title: Text('Project Name'),
-                          );
-                        },
-                      ),
-                    );
-                  }
-                  if (state is HomeStateError) {
-                    return BaseContainer(
                         child: Center(
-                      child: Text(
-                        'An error occurred - ${state.message}',
-                        style: const TextStyle(color: AppColors.chestnut),
-                      ),
-                    ));
+                          child: Text('No projects found 🗑'),
+                        ),
+                      );
+                    case HomeStateLoading():
+                      return const BaseContainer(
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    case HomeStateSuccess():
+                      return BaseContainer(
+                        child: ListView.separated(
+                          separatorBuilder: (context, index) => const Divider(
+                            color: AppColors.tuatara,
+                            height: 1,
+                          ),
+                          itemCount: state.projects.length,
+                          itemBuilder: (context, index) {
+                            final project = state.projects[index];
+                            return ListTile(
+                              title: Text(project.name),
+                            );
+                          },
+                        ),
+                      );
+                    case HomeStateEmpty():
+                      return const BaseContainer(
+                        child: Center(
+                          child: Text('No projects found 🗑'),
+                        ),
+                      );
+                    default:
+                      return const SizedBox.shrink();
                   }
-                  return const BaseContainer(
-                      child: Center(
-                    child: Text('🤕'),
-                  ));
                 },
               )
             ],

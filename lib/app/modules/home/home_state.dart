@@ -17,3 +17,5 @@ class HomeStateError extends HomeState {
 
   HomeStateError(this.message);
 }
+
+class HomeStateEmpty extends HomeState {}
