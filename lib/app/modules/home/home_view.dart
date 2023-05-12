@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:x_kode/app/model/project_model.dart';
+import 'package:x_kode/app/modules/home/components/base_container.dart';
 import 'package:x_kode/app/modules/home/home_controller.dart';
 import 'package:x_kode/app/modules/home/home_state.dart';
 import 'package:x_kode/app/shared/app_colors.dart';
@@ -18,11 +18,10 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final List<ProjectModel> _projects = [];
-
   @override
   void initState() {
     super.initState();
+    context.read<HomeController>().getProjects();
   }
 
   Future<void> chooseIosFolder() async {
@@ -39,15 +38,14 @@ class _HomeViewState extends State<HomeView> {
           'sh',
           ['-c', 'cd $selectedDirectory && flutter build ios --release'],
         );
-        _projects.add(
-          ProjectModel(
-            name: selectedDirectory.split('/').last,
-            path: selectedDirectory,
-          ),
-        );
+        // _projects.add(
+        //   ProjectModel(
+        //     name: selectedDirectory.split('/').last,
+        //     path: selectedDirectory,
+        //   ),
+        // );
         log(result.stdout.toString());
         log(result.stderr.toString());
-        setState(() {});
       } on Exception {
         const AlertDialog(
           title: Text('Error'),
@@ -126,34 +124,36 @@ class _HomeViewState extends State<HomeView> {
                     );
                   }
                   if (state is HomeStateSuccess) {
-                    return Expanded(
-                      flex: 2,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(20),
-                            bottomRight: Radius.circular(20),
-                          ),
-                          color: AppColors.tuatara,
-                        ),
-                        child: const Column(),
+                    if (state.projects.isEmpty) {
+                      return const BaseContainer(
+                          child: Center(
+                        child: Text('No projects found 🗑'),
+                      ));
+                    }
+                    return BaseContainer(
+                      child: ListView.builder(
+                        itemCount: state.projects.length,
+                        itemBuilder: (context, index) {
+                          return const ListTile(
+                            title: Text('Project Name'),
+                          );
+                        },
                       ),
                     );
                   }
                   if (state is HomeStateError) {
-                    return Expanded(
-                      flex: 2,
-                      child: Center(
-                        child: Text(
-                          'An error occurred - ${state.message}',
-                          style: const TextStyle(color: AppColors.chestnut),
-                        ),
+                    return BaseContainer(
+                        child: Center(
+                      child: Text(
+                        'An error occurred - ${state.message}',
+                        style: const TextStyle(color: AppColors.chestnut),
                       ),
-                    );
+                    ));
                   }
-                  return const Center(
+                  return const BaseContainer(
+                      child: Center(
                     child: Text('🤕'),
-                  );
+                  ));
                 },
               )
             ],
