@@ -1,8 +1,10 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:x_kode/app/modules/home/home_controller.dart';
 import 'package:x_kode/app/modules/home/home_state.dart';
+import 'package:x_kode/app/routes/app_routes.dart';
 import 'package:x_kode/app/shared/app_colors.dart';
 import 'package:x_kode/app/shared/extensions/responsive_extension.dart';
 
@@ -56,6 +58,11 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  String getFinalString(String string) {
+    String _ = string.substring(0, string.lastIndexOf("/") + 1);
+    return '~$string';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,23 +113,13 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
               BlocConsumer<HomeController, HomeState>(
-                listener: (context, state) {
-                  if (state is HomeStateError) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Error'),
-                        content: Text(state.message),
-                      ),
-                    );
-                  }
-                },
+                listener: (context, state) {},
                 builder: (context, state) {
                   switch (state) {
                     case HomeStateStart():
                       return const BaseContainer(
                         child: Center(
-                          child: Text('No projects found 🗑'),
+                          child: Text('Configuring platform...'),
                         ),
                       );
                     case HomeStateLoading():
@@ -134,15 +131,66 @@ class _HomeViewState extends State<HomeView> {
                     case HomeStateSuccess():
                       return BaseContainer(
                         child: ListView.separated(
+                          padding: EdgeInsets.all(context.percentWidth(1)),
                           separatorBuilder: (context, index) => const Divider(
-                            color: AppColors.tuatara,
+                            color: AppColors.chestnut,
                             height: 1,
                           ),
                           itemCount: state.projects.length,
                           itemBuilder: (context, index) {
                             final project = state.projects[index];
-                            return ListTile(
-                              title: Text(project.name),
+                            return GestureDetector(
+                              onDoubleTap: () {
+                                context
+                                    .push('${AppRoutes.build}/${project.name}');
+                              },
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            project.name,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          Text(
+                                            getFinalString(project.path),
+                                            maxLines: 1,
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        context
+                                            .read<HomeController>()
+                                            .removeProject(project);
+                                      },
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 12,
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -150,7 +198,7 @@ class _HomeViewState extends State<HomeView> {
                     case HomeStateEmpty():
                       return const BaseContainer(
                         child: Center(
-                          child: Text('No projects found 🗑'),
+                          child: Text('No projects found 📄'),
                         ),
                       );
                     default:

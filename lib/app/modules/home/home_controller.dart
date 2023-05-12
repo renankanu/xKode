@@ -33,4 +33,9 @@ class HomeController extends Cubit<HomeState> {
       emit(HomeStateError(e.toString()));
     }
   }
+
+  Future<void> removeProject(ProjectModel project) async {
+    await ProjectModel.deleteProject(project);
+    getProjects();
+  }
 }

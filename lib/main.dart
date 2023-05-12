@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:x_kode/app/modules/home/home_view.dart';
+import 'package:x_kode/app/routes/app_routes.dart';
 import 'package:x_kode/app/shared/helpers/hive_config.dart';
 
 import 'app/modules/home/home_controller.dart';
@@ -18,16 +18,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: AppTheme.theme,
-      home: MultiBlocProvider(
-        providers: [
-          BlocProvider(
-            create: (context) => HomeController(),
-          ),
-        ],
-        child: const HomeView(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => HomeController(),
+        ),
+      ],
+      child: MaterialApp.router(
+        title: 'Flutter Demo',
+        theme: AppTheme.theme,
+        routerConfig: AppRoutes.router,
       ),
     );
   }
