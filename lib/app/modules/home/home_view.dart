@@ -1,6 +1,3 @@
-import 'dart:developer';
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,19 +40,19 @@ class _HomeViewState extends State<HomeView> {
               ),
             );
       }
-      try {
-        final result = await Process.run(
-          'sh',
-          ['-c', 'cd $selectedDirectory && flutter build ios --release'],
-        );
-        log(result.stdout.toString());
-        log(result.stderr.toString());
-      } on Exception {
-        const AlertDialog(
-          title: Text('Error'),
-          content: Text('An error occurred while building the project'),
-        );
-      }
+      // try {
+      //   final result = await Process.run(
+      //     'sh',
+      //     ['-c', 'cd $selectedDirectory && flutter build ios --release'],
+      //   );
+      //   log(result.stdout.toString());
+      //   log(result.stderr.toString());
+      // } on Exception {
+      //   const AlertDialog(
+      //     title: Text('Error'),
+      //     content: Text('An error occurred while building the project'),
+      //   );
+      // }
     }
   }
 
@@ -109,7 +106,17 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
               BlocConsumer<HomeController, HomeState>(
-                listener: (context, state) {},
+                listener: (context, state) {
+                  if (state is HomeStateError) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Error'),
+                        content: Text(state.message),
+                      ),
+                    );
+                  }
+                },
                 builder: (context, state) {
                   switch (state) {
                     case HomeStateStart():
