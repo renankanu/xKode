@@ -6,6 +6,8 @@ import 'package:lottie/lottie.dart';
 import 'package:x_kode/app/modules/build/build_controller.dart';
 import 'package:x_kode/app/modules/build/build_state.dart';
 
+import 'components/version_container.dart';
+
 class BuildView extends StatefulWidget {
   const BuildView({
     Key? key,
@@ -41,24 +43,9 @@ class _BuildViewState extends State<BuildView> {
                       style: const TextStyle(fontSize: 20),
                     ),
                     const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text('Build number: '),
-                        SizedBox(
-                          width: 100,
-                          child: TextFormField(),
-                        ),
-                      ],
-                    ),
+                    const VersionContainer(label: 'Version'),
                     const SizedBox(height: 8),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('Build number: '),
-                        Text('0'),
-                      ],
-                    ),
+                    const VersionContainer(label: 'Build'),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
