@@ -4,9 +4,11 @@ class VersionContainer extends StatelessWidget {
   const VersionContainer({
     Key? key,
     required this.label,
+    required this.controller,
   }) : super(key: key);
 
   final String label;
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,9 @@ class VersionContainer extends StatelessWidget {
             child: SizedBox(
               width: 60,
               height: 30,
-              child: TextFormField(),
+              child: TextFormField(
+                controller: controller,
+              ),
             ),
           ),
         ],

@@ -10,10 +10,19 @@ import 'build_state.dart';
 class BuildController extends Cubit<BuildState> {
   BuildController() : super(BuildStateStart());
 
-  Future<void> buildProject(String projectName) async {
+  Future<void> buildProject({
+    required String projectName,
+    required String version,
+    required String build,
+  }) async {
     emit(BuildStateLoadingBuild());
     try {
       final cacheProject = await ProjectModel.getProject(projectName);
+      await incrementIosVersion(
+        path: cacheProject!.path,
+        version: version,
+        build: build,
+      );
       if (cacheProject == null) {
         emit(BuildStateError('Project not found'));
         return;
@@ -55,5 +64,87 @@ class BuildController extends Cubit<BuildState> {
 
   void backPressed() {
     emit(BuildStateStart());
+  }
+
+  Future<(String?, String?)> getVersion(String projectName) async {
+    emit(BuildStateLoadingBuild());
+    try {
+      final cacheProject = await ProjectModel.getProject(projectName);
+      if (cacheProject == null) {
+        emit(BuildStateError('Project not found'));
+        return (null, null);
+      }
+      final pubspec = File('${cacheProject.path}/pubspec.yaml');
+      final lines = pubspec.readAsLinesSync();
+      final version =
+          lines.firstWhere((element) => element.contains('version'));
+      final fullVersion = version.split(':').last.trim();
+      final versionNumber = fullVersion.split('+').first.trim();
+      final buildNumber = fullVersion.split('+').last.trim();
+      emit(BuildStateStart());
+      return (versionNumber, buildNumber);
+    } catch (e) {
+      emit(BuildStateError(e.toString()));
+    }
+    return (null, null);
+  }
+
+  Future<void> incrementIosVersion({
+    required String path,
+    required String version,
+    required String build,
+  }) async {
+    try {
+      final projectPbxproj = File(
+        '$path/ios/Runner.xcodeproj/project.pbxproj',
+      );
+      final lines = projectPbxproj.readAsLinesSync();
+      final newLines = <String>[];
+      for (final line in lines) {
+        if (line.contains('MARKETING_VERSION')) {
+          newLines.add('\t\t\t\tMARKETING_VERSION = $version;');
+        } else if (line.contains('CURRENT_PROJECT_VERSION')) {
+          newLines.add('\t\t\t\tCURRENT_PROJECT_VERSION = $build;');
+        } else {
+          newLines.add(line);
+        }
+      }
+      await projectPbxproj.writeAsString(newLines.join('\n'));
+      await configInfo(path: path);
+    } catch (e) {
+      emit(BuildStateError(e.toString()));
+    }
+  }
+
+  Future<void> configInfo({
+    required String path,
+  }) async {
+    final lines = File(
+      '$path/ios/Runner/Info.plist',
+    ).readAsLinesSync();
+    final hasVersion =
+        lines.any((element) => element.contains('MARKETING_VERSION'));
+    final hasBuild =
+        lines.any((element) => element.contains('CURRENT_PROJECT_VERSION'));
+    if (!hasVersion && !hasBuild) {
+      final newLines = <String>[];
+      for (final line in lines) {
+        if (line.contains('FLUTTER_BUILD_NAME') ||
+            line.contains('FLUTTER_BUILD_NUMBER')) {
+          continue;
+        }
+        if (line.contains('CFBundleShortVersionString')) {
+          newLines.add(line);
+          newLines.add(r'	<string>$(MARKETING_VERSION)</string>');
+        } else if (line.contains('CFBundleVersion')) {
+          newLines.add(line);
+          newLines.add(r'	<string>$(CURRENT_PROJECT_VERSION)</string>');
+        } else {
+          newLines.add(line);
+        }
+      }
+      await File('$path/ios/Runner/Info.plist')
+          .writeAsString(newLines.join('\n'));
+    }
   }
 }

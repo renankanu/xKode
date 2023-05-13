@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
@@ -21,10 +19,24 @@ class BuildView extends StatefulWidget {
 }
 
 class _BuildViewState extends State<BuildView> {
+  final versionController = TextEditingController();
+  final buildController = TextEditingController();
+
   @override
   void initState() {
-    log(widget.projectName);
+    _getBuildVersion();
     super.initState();
+  }
+
+  void _getBuildVersion() async {
+    final (version, build) =
+        await context.read<BuildController>().getVersion(widget.projectName);
+    if (version != null) {
+      versionController.text = version;
+    }
+    if (build != null) {
+      buildController.text = build;
+    }
   }
 
   @override
@@ -43,15 +55,23 @@ class _BuildViewState extends State<BuildView> {
                       style: const TextStyle(fontSize: 20),
                     ),
                     const SizedBox(height: 20),
-                    const VersionContainer(label: 'Version'),
+                    VersionContainer(
+                      label: 'Version',
+                      controller: versionController,
+                    ),
                     const SizedBox(height: 8),
-                    const VersionContainer(label: 'Build'),
+                    VersionContainer(
+                      label: 'Build',
+                      controller: buildController,
+                    ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () {
-                        context
-                            .read<BuildController>()
-                            .buildProject(widget.projectName);
+                        context.read<BuildController>().buildProject(
+                              projectName: widget.projectName,
+                              version: versionController.text,
+                              build: buildController.text,
+                            );
                       },
                       child: const Text('Build'),
                     ),
@@ -100,6 +120,22 @@ class _BuildViewState extends State<BuildView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text('Success'),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<BuildController>().backPressed();
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Back'),
+                      ),
+                    ],
+                  ),
+                ),
+              BuildStateError() => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(state.message),
                       const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () {

@@ -2,6 +2,8 @@ sealed class BuildState {}
 
 class BuildStateStart extends BuildState {}
 
+class BuildStateLoading extends BuildState {}
+
 class BuildStateLoadingBuild extends BuildState {}
 
 class BuildStateLoadingSend extends BuildState {}
