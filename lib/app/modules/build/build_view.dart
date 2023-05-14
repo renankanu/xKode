@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:x_kode/app/modules/build/build_controller.dart';
 import 'package:x_kode/app/modules/build/build_state.dart';
+import 'package:x_kode/app/shared/app_colors.dart';
 
 import 'components/version_container.dart';
 
@@ -64,16 +66,31 @@ class _BuildViewState extends State<BuildView> {
                       label: 'Build',
                       controller: buildController,
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<BuildController>().buildProject(
-                              projectName: widget.projectName,
-                              version: versionController.text,
-                              build: buildController.text,
-                            );
-                      },
-                      child: const Text('Build'),
+                    const SizedBox(height: 40),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.emperor,
+                          ),
+                          onPressed: () {
+                            context.pop();
+                          },
+                          child: const Text('Voltar'),
+                        ),
+                        const SizedBox(width: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<BuildController>().buildProject(
+                                  projectName: widget.projectName,
+                                  version: versionController.text,
+                                  build: buildController.text,
+                                );
+                          },
+                          child: const Text('Build'),
+                        ),
+                      ],
                     ),
                   ],
                 ),

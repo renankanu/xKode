@@ -33,15 +33,16 @@ class _HomeViewState extends State<HomeView> {
         title: Text('Error'),
         content: Text('No directory was selected'),
       );
-    } else {
-      if (mounted) {
-        context.read<HomeController>().saveProject(
-              ProjectModel(
-                name: selectedDirectory.split('/').last,
-                path: selectedDirectory,
-              ),
-            );
-      }
+      return;
+    }
+
+    if (mounted) {
+      context.read<HomeController>().saveProject(
+            ProjectModel(
+              name: selectedDirectory.split('/').last,
+              path: selectedDirectory,
+            ),
+          );
     }
   }
 

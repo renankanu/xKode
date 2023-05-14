@@ -18,19 +18,22 @@ class BuildController extends Cubit<BuildState> {
     emit(BuildStateLoadingBuild());
     try {
       final cacheProject = await ProjectModel.getProject(projectName);
-      await incrementIosVersion(
-        path: cacheProject!.path,
-        version: version,
-        build: build,
-      );
       if (cacheProject == null) {
         emit(BuildStateError('Project not found'));
         return;
       }
+
+      await incrementIosVersion(
+        path: cacheProject.path,
+        version: version,
+        build: build,
+      );
+
+      final path = cacheProject.path.replaceAll(' ', r'\ ');
       try {
         final result = await Process.run(
           'sh',
-          ['-c', 'cd ${cacheProject.path} && flutter build ipa'],
+          ['-c', 'cd $path && flutter build ipa'],
         );
         log(result.stdout.toString());
         log(result.stderr.toString());
@@ -122,29 +125,33 @@ class BuildController extends Cubit<BuildState> {
     final lines = File(
       '$path/ios/Runner/Info.plist',
     ).readAsLinesSync();
-    final hasVersion =
-        lines.any((element) => element.contains('MARKETING_VERSION'));
-    final hasBuild =
-        lines.any((element) => element.contains('CURRENT_PROJECT_VERSION'));
-    if (!hasVersion && !hasBuild) {
-      final newLines = <String>[];
-      for (final line in lines) {
-        if (line.contains('FLUTTER_BUILD_NAME') ||
-            line.contains('FLUTTER_BUILD_NUMBER')) {
-          continue;
+    try {
+      final hasVersion =
+          lines.any((element) => element.contains('MARKETING_VERSION'));
+      final hasBuild =
+          lines.any((element) => element.contains('CURRENT_PROJECT_VERSION'));
+      if (!hasVersion && !hasBuild) {
+        final newLines = <String>[];
+        for (final line in lines) {
+          if (line.contains('FLUTTER_BUILD_NAME') ||
+              line.contains('FLUTTER_BUILD_NUMBER')) {
+            continue;
+          }
+          if (line.contains('CFBundleShortVersionString')) {
+            newLines.add(line);
+            newLines.add(r'	<string>$(MARKETING_VERSION)</string>');
+          } else if (line.contains('CFBundleVersion')) {
+            newLines.add(line);
+            newLines.add(r'	<string>$(CURRENT_PROJECT_VERSION)</string>');
+          } else {
+            newLines.add(line);
+          }
         }
-        if (line.contains('CFBundleShortVersionString')) {
-          newLines.add(line);
-          newLines.add(r'	<string>$(MARKETING_VERSION)</string>');
-        } else if (line.contains('CFBundleVersion')) {
-          newLines.add(line);
-          newLines.add(r'	<string>$(CURRENT_PROJECT_VERSION)</string>');
-        } else {
-          newLines.add(line);
-        }
+        await File('$path/ios/Runner/Info.plist')
+            .writeAsString(newLines.join('\n'));
       }
-      await File('$path/ios/Runner/Info.plist')
-          .writeAsString(newLines.join('\n'));
+    } on Exception catch (e) {
+      emit(BuildStateError(e.toString()));
     }
   }
 }
