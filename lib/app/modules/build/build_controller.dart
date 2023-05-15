@@ -31,6 +31,7 @@ class BuildController extends Cubit<BuildState> {
 
       final path = cacheProject.path.replaceAll(' ', r'\ ');
       try {
+        log('cd $path && flutter build apk');
         final result = await Process.run(
           'sh',
           ['-c', 'cd $path && flutter build ipa'],
