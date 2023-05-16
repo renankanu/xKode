@@ -31,14 +31,13 @@ class BuildController extends Cubit<BuildState> {
 
       final path = cacheProject.path.replaceAll(' ', r'\ ');
       try {
-        log('cd $path && flutter build apk');
         final result = await Process.run(
           'sh',
           ['-c', 'cd $path && flutter build ipa'],
         );
         log(result.stdout.toString());
         log(result.stderr.toString());
-        // _sendIpaToApple(cacheProject);
+        _sendIpaToApple(cacheProject);
       } on Exception {
         emit(BuildStateError('Error'));
       }
