@@ -97,6 +97,23 @@ class BuildController extends Cubit<BuildState> {
     required String version,
     required String build,
   }) async {
+    await _incrementRunner(
+      path,
+      version,
+      build,
+    );
+    await _incrementPubspec(
+      path: path,
+      version: version,
+      build: build,
+    );
+  }
+
+  Future<void> _incrementRunner(
+    String path,
+    String version,
+    String build,
+  ) async {
     try {
       final projectPbxproj = File(
         '$path/ios/Runner.xcodeproj/project.pbxproj',
@@ -113,44 +130,29 @@ class BuildController extends Cubit<BuildState> {
         }
       }
       await projectPbxproj.writeAsString(newLines.join('\n'));
-      await configInfo(path: path);
     } catch (e) {
       emit(BuildStateError(e.toString()));
     }
   }
 
-  Future<void> configInfo({
+  Future<void> _incrementPubspec({
     required String path,
+    required String version,
+    required String build,
   }) async {
-    final lines = File(
-      '$path/ios/Runner/Info.plist',
-    ).readAsLinesSync();
     try {
-      final hasVersion =
-          lines.any((element) => element.contains('MARKETING_VERSION'));
-      final hasBuild =
-          lines.any((element) => element.contains('CURRENT_PROJECT_VERSION'));
-      if (!hasVersion && !hasBuild) {
-        final newLines = <String>[];
-        for (final line in lines) {
-          if (line.contains('FLUTTER_BUILD_NAME') ||
-              line.contains('FLUTTER_BUILD_NUMBER')) {
-            continue;
-          }
-          if (line.contains('CFBundleShortVersionString')) {
-            newLines.add(line);
-            newLines.add(r'	<string>$(MARKETING_VERSION)</string>');
-          } else if (line.contains('CFBundleVersion')) {
-            newLines.add(line);
-            newLines.add(r'	<string>$(CURRENT_PROJECT_VERSION)</string>');
-          } else {
-            newLines.add(line);
-          }
+      final pubspec = File('$path/pubspec.yaml');
+      final lines = pubspec.readAsLinesSync();
+      final newLines = <String>[];
+      for (final line in lines) {
+        if (line.contains('version')) {
+          newLines.add('version: $version+$build');
+        } else {
+          newLines.add(line);
         }
-        await File('$path/ios/Runner/Info.plist')
-            .writeAsString(newLines.join('\n'));
       }
-    } on Exception catch (e) {
+      await pubspec.writeAsString(newLines.join('\n'));
+    } catch (e) {
       emit(BuildStateError(e.toString()));
     }
   }
